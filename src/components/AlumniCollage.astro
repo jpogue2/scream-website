@@ -1,0 +1,18 @@
+---
+const { logos = [] } = Astro.props;
+---
+
+<div class="flex justify-center">
+  <div class="grid grid-cols-3 gap-10 items-center justify-items-center w-max">
+    {logos.map((logo, i) => (
+      <div class="flex items-center justify-center">
+        <img
+          src={logo}
+          alt={`Alumni company ${i + 1}`}
+          class="h-12 w-auto grayscale opacity-80 transition duration-200 hover:grayscale-0 hover:opacity-100"
+          loading="lazy"
+        />
+      </div>
+    ))}
+  </div>
+</div>

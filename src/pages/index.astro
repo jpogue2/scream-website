@@ -1,20 +1,63 @@
 ---
-import Stats from '../components/Stats.astro';
-import Features from '../components/Features.astro';
-import HeroSection from '../components/HeroSection.astro';
+// src/pages/index.astro
 import Layout from '../layouts/Layout.astro';
-import Testimonials from '../components/Testimonials.astro';
-import CallToAction from '../components/CallToAction.astro';
-import Blog from '../components/Blog.astro';
----
 
-<Layout title="Welcome to Astrolus.">
-	<main class="space-y-40 mb-40">
-		<HeroSection/>
-		<Features/>
-		<Stats/>
-		<Testimonials/>
-		<CallToAction/>
-		<Blog/>
-	</main>
+import ClubCarousel from '../components/ClubCarousel.astro';
+import AboutSection from '../components/AboutSection.astro';
+import AlumniCollage from '../components/AlumniCollage.astro';
+
+const carouselImages = [
+  '/images/club/slide-1.jpg',
+  '/images/club/slide-2.jpg',
+  '/images/club/slide-3.jpg',
+];
+
+const alumniLogos = [
+  '/images/clients/wdi.svg',
+  '/images/clients/universal.svg',
+  '/images/clients/knotts.svg',
+];
+---
+<Layout title="Scream USC — Home">
+  <main class="space-y-24 pb-24">
+    <!-- Rotating carousel hero with overlay text -->
+    <ClubCarousel images={carouselImages} interval={6000} />
+
+    <!-- About / text section -->
+    <AboutSection>
+      <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white">Who We Are</h2>
+      <p class="mt-4 text-gray-700 dark:text-gray-300 max-w-3xl">
+        Scream USC is USC's student organization for theme park enthusiasts and engineers.
+        We run park trips around the Los Angeles region, behind-the-scenes tours, guest speaker
+        talks with industry professionals, and participate in the Ride Engineering Competition.
+        Membership is open to all majors and years, there are no dues, and we balance a
+        half-professional / half-enthusiast culture — come build, learn, and ride with us.
+      </p>
+
+      <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div>
+          <h6 class="font-semibold text-gray-800 dark:text-white">Park Trips</h6>
+          <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">Group rides, logistics, and hands-on observations.</p>
+        </div>
+        <div>
+          <h6 class="font-semibold text-gray-800 dark:text-white">Behind-the-Scenes</h6>
+          <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">Tours focused on systems, mechanics, and operations.</p>
+        </div>
+        <div>
+          <h6 class="font-semibold text-gray-800 dark:text-white">Ride Engineering</h6>
+          <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">Design projects and competition participation.</p>
+        </div>
+      </div>
+    </AboutSection>
+
+    <!-- Alumni/company collage -->
+    <section aria-labelledby="alumni-heading" class="container mx-auto px-4">
+      <h2 id="alumni-heading" class="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white text-center">Where Our Alumni Work</h2>
+      <p class="text-center text-gray-600 dark:text-gray-300 mt-2">A sample of companies our members have joined after graduation.</p>
+
+      <div class="mt-8">
+        <AlumniCollage logos={alumniLogos} />
+      </div>
+    </section>
+  </main>
 </Layout>

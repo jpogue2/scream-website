@@ -16,20 +16,20 @@ import "./../tailus.css"
         <title>Tailus astro theme</title>
 
         <AstroFont
-            config={[
-                {
-                    src: [],
-                    name: "Urbanist",
-                    preload: true,
-                    display: "swap",
-                    selector: "html",
-                    fallback: "sans-serif",
-                    googleFontsURL: 'https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&display=swap',
-                },
-            ]}
+        config={[
+            {
+            name: "Plus Jakarta Sans",
+            preload: true,
+            display: "swap",
+            selector: "html",
+            fallback: "sans-serif",
+            googleFontsURL: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap",
+            src: []
+        },
+        ]}
         />
     </head>
-    <body class="bg-white dark:bg-gray-950">
+    <body class="bg-white text-gray-800 dark:bg-gray-950 dark:text-gray-100 text-lg">
         <AppHeader />
         <slot />
         <AppFooter />
