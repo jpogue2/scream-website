@@ -7,9 +7,12 @@ import AboutSection from '../components/AboutSection.astro';
 import AlumniCollage from '../components/AlumniCollage.astro';
 
 const carouselImages = [
-  '/images/club/slide-1.jpg',
-  '/images/club/slide-2.jpg',
-  '/images/club/slide-3.jpg',
+  '/images/scream-usc/scream-usc-mcn.jpeg',
+  '/images/scream-usc/scream-usc-iaapa.jpeg',
+  '/images/scream-usc/scream-usc-dreamlab.jpeg',
+  '/images/scream-usc/scream-usc-meow-wolf.jpeg',
+  '/images/scream-usc/scream-usc-universal.jpeg',
+  '/images/scream-usc/scream-usc-workshop.jpeg',
 ];
 
 const alumniLogos = [
@@ -19,7 +22,7 @@ const alumniLogos = [
 ];
 ---
 <Layout title="Scream USC — Home">
-  <main class="space-y-24 pb-24">
+  <main class="pb-24">
     <!-- Rotating carousel hero with overlay text -->
     <ClubCarousel images={carouselImages} interval={6000} />
 

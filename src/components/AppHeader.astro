@@ -8,18 +8,14 @@ const links = [
 ];
 ---
 <header>
-  <nav id="nav" class="absolute group z-10 w-full border-b border-black/5 dark:border-white/5 lg:border-transparent">
+  <nav id="nav" class="relative group z-10 w-full border-b border-black/5 dark:border-white/5 lg:border-transparent">
     <Container>
       <div class="relative flex flex-wrap items-center justify-between gap-6 py-3 md:gap-0 md:py-4">
 
         <!-- ===== LOGO + HAMBURGER (restored) ===== -->
         <div class="relative z-20 flex w-full justify-between md:px-0 lg:w-fit">
-          <a href="/" aria-label="logo" class="flex items-center space-x-2">
-            <div aria-hidden="true" class="flex space-x-1">
-              <div class="size-4 rounded-full bg-gray-900 dark:bg-white"></div>
-              <div class="h-6 w-2 bg-primary"></div>
-            </div>
-            <span class="text-2xl font-bold text-gray-900 dark:text-white">Astrolus</span>
+          <a href="/" class="flex items-center">
+            <img src="/images/logo.png" alt="Scream USC Logo" class="h-20 w-auto" />
           </a>
 
           <div class="relative flex max-h-10 items-center lg:hidden">
