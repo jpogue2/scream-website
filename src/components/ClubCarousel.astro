@@ -1,10 +1,18 @@
 ---
 // src/components/ClubCarousel.astro
-// Fix: remove inline button background, make buttons frosted/transparent and reliably centered.
+// Updated: uses provided alt text, avoids duplicate H1, and announces slide changes via an aria-live region.
 import Container from "./Container.astro";
 
 const {
   images = [],
+  alts = [
+    "Scream USC at a collaboration event with Melanin Coaster Network (MCN), attending exclusive ride time at Six Flags Magic Mountain",
+    "Scream USC at the International Association of Amusement Parks and Attractions (IAAPA) Expo",
+    "Scream USC members at DreamLab, a Scream USC organized themed entertainment design competition",
+    "Scream USC at a behind-the-scenes tour at Meow Wolf's Omega Mart",
+    "Scream USC members attending a behind-the-scenes tour of Universal Studios Hollywood",
+    "Scream USC members facilitating a STEM workshop for a local Los Angeles elementary school"
+  ],
   interval = 6000,
   preloadAhead = 1,
   saturation = 0.75,
@@ -15,6 +23,15 @@ const {
 ---
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;900&family=Inter:wght@300;400;600&display=swap');
+
+  /* Visually-hidden helper for screen-reader-only text */
+  .sr-only {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0);
+    white-space: nowrap; border: 0;
+  }
 
   /* Ensure carousel is the positioning context */
   .carousel { position: relative; }
@@ -228,43 +245,48 @@ const {
 <Container>
   <div
     data-component="club-carousel"
+    id="club-carousel-wrapper"
     data-interval={interval}
     data-preloadahead={preloadAhead}
     class="relative z-0 mt-6 md:mt-8"
     aria-roledescription="carousel"
   >
-    <div class="carousel overflow-hidden">
+    <div id="club-carousel" class="carousel overflow-hidden" aria-live="off" aria-atomic="false">
       <div class="carousel-track" role="list">
-        {images.map((src, i) => (
-          <div class="carousel-slide flex-shrink-0 w-full" role="listitem" aria-hidden={i !== 0}>
-            <div
-              class="w-full h-56 md:h-[420px] lg:h-[560px] overflow-hidden img-wrapper"
-              style={`--carousel-saturation:${saturation}; --carousel-tint-blend:${tintBlend};`}
-            >
-              <img
-                src={src}
-                alt=""
-                class="w-full h-full object-cover object-center"
-                loading="lazy"
-                decoding="async"
-                width="1600"
-                height="900"
-                style="aspect-ratio:16/9"
-              />
+        {images.map((src, i) => {
+          // compute a safe accessible alt fallback
+          const safeAlt = alts[i] ?? `Scream USC image ${i + 1}`;
+          return (
+            <div class="carousel-slide flex-shrink-0 w-full" role="listitem" aria-hidden={i !== 0}>
               <div
-                aria-hidden="true"
-                class="tint-overlay"
-                style={`background: ${tintColor}; opacity: ${tintOpacity};`}
-              />
+                class="w-full h-56 md:h-[420px] lg:h-[560px] overflow-hidden img-wrapper"
+                style={`--carousel-saturation:${saturation}; --carousel-tint-blend:${tintBlend};`}
+              >
+                <img
+                  src={src}
+                  alt={safeAlt}
+                  class="w-full h-full object-cover object-center"
+                  loading="lazy"
+                  decoding="async"
+                  width="1600"
+                  height="900"
+                  style="aspect-ratio:16/9"
+                />
+                <div
+                  aria-hidden="true"
+                  class="tint-overlay"
+                  style={`background: ${tintColor}; opacity: ${tintOpacity};`}
+                />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <!-- Top-middle Text Overlay with pill highlights -->
+      <!-- Top-middle Text Overlay with pill highlights (H2 to avoid duplicate H1s) -->
       <div class="carousel-hero-overlay" aria-hidden="true">
         <span class="carousel-title-pill">
-          <h1 class="carousel-title">Scream USC</h1>
+          <h2 class="carousel-title">Scream USC</h2>
         </span>
 
         <span class="carousel-sub-pill">
@@ -294,9 +316,19 @@ const {
       <!-- dots -->
       <div class="dots" role="tablist" aria-label="Slide dots">
         {images.map((_, i) => (
-          <button class="carousel-dot" aria-label={`Go to slide ${i + 1}`} data-index={i}></button>
+          <button
+            class="carousel-dot"
+            role="tab"
+            aria-controls="club-carousel"
+            aria-selected="false"
+            aria-label={`Go to slide ${i + 1}`}
+            data-index={i}
+          ></button>
         ))}
       </div>
+
+      <!-- Screen-reader status region; updated when slide changes -->
+      <span id="club-carousel-status" class="sr-only" role="status" aria-live="polite"></span>
     </div>
   </div>
 </Container>
@@ -312,6 +344,7 @@ const {
     const dots = carousel ? Array.from(carousel.querySelectorAll('.carousel-dot')) : [];
     const btnPrev = carousel && carousel.querySelector('[data-action="prev"]');
     const btnNext = carousel && carousel.querySelector('[data-action="next"]');
+    const statusEl = document.getElementById('club-carousel-status');
     const INTERVAL = Number(wrapper.dataset.interval) || 6000;
     const PRELOAD_AHEAD = Math.max(1, Number(wrapper.dataset.preloadahead) || 1);
 
@@ -322,9 +355,26 @@ const {
     const count = slides.length;
 
     function update() {
+      // move track
       track.style.transform = `translateX(-${idx * 100}%)`;
+
+      // aria-hidden on slides
       slides.forEach((s, si) => s.setAttribute('aria-hidden', si !== idx));
-      dots.forEach((d, di) => d.classList.toggle('active', di === idx));
+
+      // dots visual + aria-selected
+      dots.forEach((d, di) => {
+        const isActive = di === idx;
+        d.classList.toggle('active', isActive);
+        d.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      // announce to screen readers using the image alt (or a reasonable fallback)
+      if (statusEl) {
+        const currentImg = images[idx];
+        const caption = currentImg ? (currentImg.alt || `Slide ${idx + 1} of ${count}`) : `Slide ${idx + 1} of ${count}`;
+        statusEl.textContent = caption;
+      }
+
       setImagePriorities(idx);
       preloadAround(idx, PRELOAD_AHEAD);
     }
