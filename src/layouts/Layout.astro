@@ -7,7 +7,7 @@ import "./../tailus.css";
 const {
   title = "Scream USC",
   description = "Scream USC — USC's student organization for themed entertainment and ride engineering. Park trips, guest speakers, behind-the-scenes tours, and the Ride Engineering Competition.",
-  canonical = "https://screamusc.com"
+  canonical = "https://scream-usc.netlify.app"
 } = Astro.props;
 
 const siteUrl = canonical.replace(/\/$/, '');
@@ -22,7 +22,11 @@ const pageTitle = title && title !== "Scream USC" ? `${title} | Scream USC` : "S
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <!-- Favicons -->
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
 
     <meta name="generator" content={Astro.generator} />
     <title>{pageTitle}</title>
