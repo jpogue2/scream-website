@@ -1,51 +1,246 @@
 ---
 // src/components/ClubCarousel.astro
-// Copy-and-paste this file into your project (replaces your existing ClubCarousel.astro).
-// Improvements included:
-// - Preloads neighbor images via <link rel="preload"> and Image() warm-up
-// - Sets the visible slide to loading="eager" and fetchpriority="high" (toggled in JS)
-// - Adds width/height / aspect-ratio placeholders to avoid layout shift
-// - Optional `preloadAhead` prop to warm more than just immediate neighbors
-// - Keeps all original accessibility / keyboard / touch behavior
-//
-// Props:
-// - images: string[] (image URLs)
-// - interval: number (ms between auto-advance)
-// - preloadAhead: number (how many slides ahead/behind to warm; default 1)
+// Fix: remove inline button background, make buttons frosted/transparent and reliably centered.
 import Container from "./Container.astro";
 
 const {
   images = [],
   interval = 6000,
-  preloadAhead = 1
+  preloadAhead = 1,
+  saturation = 0.75,
+  tintColor = "#ff7a00",
+  tintOpacity = 0.05,
+  tintBlend = "multiply"
 } = Astro.props;
 ---
 <style>
-  /* Small local helpers (non-invasive) */
-  .carousel-track { transition: transform .7s ease; will-change: transform; }
-  .carousel-dot { width:10px; height:10px; border-radius:9999px; opacity:.45; }
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;900&family=Inter:wght@300;400;600&display=swap');
+
+  /* Ensure carousel is the positioning context */
+  .carousel { position: relative; }
+
+  /* Track, dots */
+  .carousel-track { transition: transform .7s ease; will-change: transform; display: flex; }
   .carousel-dot.active { opacity:1; transform:scale(1.05); }
-  /* simple blurred placeholder fallback for perceived performance */
+
+  /* Placeholder background while image loads */
   .img-wrapper {
     background: linear-gradient(90deg, #f3f4f6 0%, #e5e7eb 50%, #f3f4f6 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Images */
+  .carousel-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    filter: saturate(var(--carousel-saturation, 1));
+    transition: filter 240ms ease, opacity 240ms ease;
+    display: block;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  /* Per-slide tint */
+  .tint-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    mix-blend-mode: var(--carousel-tint-blend, multiply);
+    transition: opacity 240ms ease;
+    z-index: 10;
+  }
+
+  .img-loaded { background: transparent !important; }
+
+  /* ===== Controls =====
+     Frosted / semi-transparent controls that remain readable and centered.
+  */
+  .carousel .control-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%); /* reliable vertical centering */
+    z-index: 60;                 /* above tint + pills */
+    pointer-events: auto;
+
+    width: 44px;
+    height: 44px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 9999px;
+
+    /* frosted look (semi-transparent) */
+    background-color: rgba(255,146,72,0.6);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+
+    /* isolate from blend effects */
+    mix-blend-mode: normal;
+    isolation: isolate;
+
+    /* separation */
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 8px 24px rgba(11,17,32,0.16);
+
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+  }
+
+  /* Left / right anchors */
+  .carousel .control-btn.left  { left: 0.75rem; }
+  .carousel .control-btn.right { right: 0.75rem; }
+
+  /* Hover / active */
+  .carousel .control-btn:hover {
+    transform: translateY(-50%) scale(1.06);
+    box-shadow: 0 12px 34px rgba(11,17,32,0.20);
+    background-color: rgba(255,255,255,0.10);
+  }
+  .carousel .control-btn:active {
+    transform: translateY(-50%) scale(.98);
+  }
+
+  /* Icon (stroke white + tiny shadow so it's visible on bright areas) */
+  .control-btn svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    stroke: white;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35));
+  }
+
+  /* Visible pagination dots */
+  .carousel .dots {
+    position: absolute;
+    left: 50%;
+    bottom: 1rem;
+    transform: translateX(-50%);
+    z-index: 50;
+    display: flex;
+    gap: 0.6rem;
+    pointer-events: auto;
+    align-items: center;
+  }
+
+  /* base dot (use your primary color, with a subtle outer ring so it reads on any background) */
+  .carousel-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    background-color: rgba(255,146,72,0.95); /* primary fill */
+    border: 2px solid rgba(255,255,255,0.9);  /* thin white ring for contrast on dark areas */
+    box-shadow: 0 6px 14px rgba(11,17,32,0.18);
+    opacity: 0.95;
+    transition: transform .18s ease, opacity .12s ease, box-shadow .18s ease;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  /* inactive subtle state */
+  .carousel-dot:not(.active) {
+    transform: scale(1);
+    opacity: 0.68;
+    filter: none;
+    border-color: rgba(255,255,255,0.8);
+    background-color: rgba(255,146,72,0.72);
+  }
+
+  /* active / current slide */
+  .carousel-dot.active {
+    transform: scale(1.28);
+    opacity: 1;
+    box-shadow: 0 10px 26px rgba(11,17,32,0.22);
+    background-color: rgba(255,146,72,1);
+    border-color: rgba(255,255,255,1);
+  }
+
+  /* keyboard / focus visible */
+  .carousel-dot:focus {
+    outline: 3px solid rgba(255,146,72,0.18);
+    outline-offset: 4px;
+  }
+
+  /* ===== Top Hero Overlay (pills) ===== */
+  .carousel-hero-overlay {
+    position: absolute;
+    top: 12%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 45; /* below controls (60) but above tint (10) */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    pointer-events: none;
+    width: 100%;
+    padding: 0 1rem;
+  }
+
+  /* Pills: keep mix-blend-mode normal and isolate stacking context */
+  .carousel-title-pill,
+  .carousel-sub-pill {
+    display: inline-block;
+    border-radius: 9999px;
+    background-color: rgba(255,146,72,0.6);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    mix-blend-mode: normal;
+    isolation: isolate;
+    position: relative;
+    z-index: 45;
+    pointer-events: none;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.28);
+  }
+
+  .carousel-title-pill { padding: 0.45rem 1.05rem; }
+  .carousel-sub-pill   { margin-top: 0.5rem; padding: 0.32rem 0.9rem; }
+
+  .carousel-title {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(2rem, 5.2vw, 3.6rem);
+    font-weight: 700;
+    color: white;
+    line-height: 1.05;
+    margin: 0;
+  }
+
+  .carousel-subtitle {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    margin: 0;
+    font-size: clamp(0.95rem, 1.9vw, 1.2rem);
+    font-weight: 500;
+    color: white;
+    line-height: 1.15;
+  }
+
+  @media (max-width: 420px) {
+    .carousel-title { font-size: 1.6rem; }
   }
 </style>
 
 <Container>
-  <div data-component="club-carousel" data-interval={interval} data-preloadahead={preloadAhead} class="relative z-0 mt-6 md:mt-8" aria-roledescription="carousel">
+  <div
+    data-component="club-carousel"
+    data-interval={interval}
+    data-preloadahead={preloadAhead}
+    class="relative z-0 mt-6 md:mt-8"
+    aria-roledescription="carousel"
+  >
     <div class="carousel overflow-hidden">
-      <div class="carousel-track flex" role="list">
+      <div class="carousel-track" role="list">
         {images.map((src, i) => (
           <div class="carousel-slide flex-shrink-0 w-full" role="listitem" aria-hidden={i !== 0}>
-            <!-- Fixed-height wrapper that crops vertically. Adjust heights below to taste. -->
-            <div class="w-full h-56 md:h-[420px] lg:h-[560px] overflow-hidden img-wrapper">
-              <!--
-                Notes:
-                - width/height are suggested intrinsic sizes to reduce layout shifts.
-                - We default images to loading="lazy" and switch the visible slide to eager in JS.
-                - fetchpriority is toggled in JS; browsers that support it will honor it.
-                - Keep alt text meaningful if you have it (here left blank for decorative).
-              -->
+            <div
+              class="w-full h-56 md:h-[420px] lg:h-[560px] overflow-hidden img-wrapper"
+              style={`--carousel-saturation:${saturation}; --carousel-tint-blend:${tintBlend};`}
+            >
               <img
                 src={src}
                 alt=""
@@ -56,32 +251,50 @@ const {
                 height="900"
                 style="aspect-ratio:16/9"
               />
+              <div
+                aria-hidden="true"
+                class="tint-overlay"
+                style={`background: ${tintColor}; opacity: ${tintOpacity};`}
+              />
             </div>
           </div>
         ))}
       </div>
 
-      <!-- Prev / Next controls -->
+      <!-- Top-middle Text Overlay with pill highlights -->
+      <div class="carousel-hero-overlay" aria-hidden="true">
+        <span class="carousel-title-pill">
+          <h1 class="carousel-title">Scream USC</h1>
+        </span>
+
+        <span class="carousel-sub-pill">
+          <p class="carousel-subtitle">Themed entertainment enthusiasts and engineers</p>
+        </span>
+      </div>
+
+      <!-- Prev / Next controls: NO inline background styles so CSS can make them frosted -->
       <button
-        class="absolute left-3 top-1/2 -translate-y-1/2 z-20 rounded-full bg-primary text-white p-2 shadow-lg hover:scale-105 active:scale-95 transition"
+        class="control-btn left"
         aria-label="Previous slide"
         data-action="prev"
+        type="button"
       >
-        <svg class="w-5 h-5" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 15L7 10L12 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M12 15L7 10L12 5" /></svg>
       </button>
 
       <button
-        class="absolute right-3 top-1/2 -translate-y-1/2 z-20 rounded-full bg-primary text-white p-2 shadow-lg hover:scale-105 active:scale-95 transition"
+        class="control-btn right"
         aria-label="Next slide"
         data-action="next"
+        type="button"
       >
-        <svg class="w-5 h-5" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5L13 10L8 15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M8 5L13 10L8 15" /></svg>
       </button>
 
       <!-- dots -->
-      <div class="absolute left-1/2 bottom-4 -translate-x-1/2 z-20 flex gap-3">
+      <div class="dots" role="tablist" aria-label="Slide dots">
         {images.map((_, i) => (
-          <button class="carousel-dot bg-primary/50" aria-label={`Go to slide ${i + 1}`} data-index={i}></button>
+          <button class="carousel-dot" aria-label={`Go to slide ${i + 1}`} data-index={i}></button>
         ))}
       </div>
     </div>
@@ -136,13 +349,12 @@ const {
     function setImagePriorities(currentIdx) {
       images.forEach((img, i) => {
         if (!img) return;
+        const wrapperEl = img.closest('.img-wrapper');
         if (i === currentIdx) {
-          // visible image: eager + high priority (if supported)
           try { img.loading = 'eager'; } catch (e) {}
           try { img.setAttribute('fetchpriority', 'high'); } catch (e) {}
           img.decoding = 'async';
-          // ensure minimal placeholder background is removed when loaded
-          if (img.complete) img.closest('.img-wrapper')?.classList.remove('img-wrapper');
+          if (img.complete) wrapperEl?.classList.add('img-loaded');
         } else {
           try { img.loading = 'lazy'; } catch (e) {}
           try { img.setAttribute('fetchpriority', 'auto'); } catch (e) {}
@@ -161,13 +373,10 @@ const {
       toPreload.forEach(i => {
         const img = images[i];
         if (!img) return;
-        // If not yet fully loaded, create an Image() to warm the browser cache.
         if (!img.complete) {
           const warm = new Image();
           warm.src = img.src;
-          // If you use CORS-enabled images, you could set warm.crossOrigin = 'anonymous';
         }
-        // Add a <link rel="preload"> hint if not already present
         const selector = `link[data-preload="${img.src}"]`;
         if (!document.querySelector(selector)) {
           const link = document.createElement('link');
@@ -179,6 +388,15 @@ const {
         }
       });
     }
+
+    // When an image finishes loading, remove placeholder background for smoother look
+    images.forEach((img) => {
+      if (!img) return;
+      img.addEventListener('load', (e) => {
+        const wrapperEl = img.closest('.img-wrapper');
+        if (wrapperEl) wrapperEl.classList.add('img-loaded');
+      });
+    });
 
     // init
     show(0);
@@ -209,7 +427,7 @@ const {
       if (e.key === 'ArrowLeft') { prev(); stop(); }
     });
 
-    // basic touch swipe
+    // touch support (swipe)
     let touchStartX = 0;
     carousel.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; stop(); }, { passive: true });
     carousel.addEventListener('touchend', (e) => {
@@ -219,7 +437,7 @@ const {
       start();
     }, { passive: true });
 
-    // HMR cleanup (Vite)
+    // HMR cleanup
     if (import.meta.hot) {
       import.meta.hot.dispose(() => {
         stop();

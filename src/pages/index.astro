@@ -21,6 +21,140 @@ const alumniLogos = [
   '/images/clients/knotts.svg',
 ];
 ---
+<style>
+/* Import fonts (display serif + neutral sans) */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;900&family=Inter:wght@300;400;600&display=swap');
+
+/* CSS variables (use your theme variables if you have them elsewhere) */
+:root{
+  --color-primary: var(--color-primary, #ff9248);
+  --color-muted: #6b7280; /* gray-500 */
+  --bg-card: var(--color-secondary, #fff7f0); /* subtle warm secondary */
+}
+
+/* Base typography */
+html, body {
+  font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color: #0f172a; /* slightly richer than pure black */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* H2 treatment - display feel with pill/underline accent */
+.page-h2 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(2rem, 3.75vw, 3rem);
+  line-height: 1.02;
+  margin: 0;
+  color: #0b1220;
+  position: relative;
+  padding-bottom: 0.6rem;
+  display: inline-block;
+}
+
+/* small pill accent behind the H2 */
+.page-h2::before{
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -0.18rem;
+  width: 56%;
+  height: 0.48rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255,146,72,0.95), rgba(255,146,72,0.85));
+  filter: blur(0.25px);
+  z-index: -1;
+  opacity: 0.95;
+}
+
+/* Lead paragraph */
+.lead {
+  margin-top: 0.75rem;
+  color: #374151; /* gray-700 */
+  max-width: 70ch;
+  font-size: 1.125rem;
+  line-height: 1.75;
+  font-weight: 400;
+  letter-spacing: -0.002em;
+}
+
+/* subtle drop-cap for lead */
+.lead::first-letter {
+  float: left;
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 3.1rem;
+  line-height: 1;
+  margin-right: 0.5rem;
+  color: var(--color-primary);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+/* Feature cards grid */
+.feature-grid { margin-top: 1.25rem; display: grid; gap: 1.25rem; grid-template-columns: repeat(1, minmax(0,1fr)); }
+@media(min-width: 640px){ .feature-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media(min-width: 1024px){ .feature-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+
+.feature {
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.96));
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 8px 20px rgba(11,17,32,0.04);
+  border: 1px solid rgba(11,17,32,0.03);
+}
+
+/* Feature heading with small colored capsule */
+.feature h6 {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  margin: 0 0 0.4rem 0;
+  font-size: 1.05rem;
+  color: #0b1220;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* small accent dot / capsule */
+.feature h6::before{
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  box-shadow: 0 4px 10px rgba(255,146,72,0.18);
+}
+
+/* feature body */
+.feature p { margin: 0; color: #4b5563; font-size: 0.95rem; line-height: 1.6; }
+
+/* Alumni heading tweaks */
+.alumni-sub {
+  color: #475569;
+  margin-top: 0.5rem;
+}
+
+/* make links or CTAs more visible */
+a.cta-join {
+  background: var(--color-primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  display: inline-block;
+  box-shadow: 0 8px 26px rgba(255,146,72,0.18);
+  text-decoration: none;
+}
+
+/* small responsive polish */
+@media (max-width: 640px) {
+  .page-h2::before { width: 70%; height: 0.4rem; }
+  .lead::first-letter { font-size: 2.6rem; }
+}
+</style>
+
 <Layout title="Scream USC — Home">
   <main class="pb-24">
     <!-- Rotating carousel hero with overlay text -->
@@ -28,35 +162,40 @@ const alumniLogos = [
 
     <!-- About / text section -->
     <AboutSection>
-      <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white">Who We Are</h2>
-      <p class="mt-4 text-gray-700 dark:text-gray-300 max-w-3xl">
+      <!-- Heading: use new display style -->
+      <h2 class="page-h2">Who We Are</h2>
+
+      <!-- Lead paragraph: prominent, readable -->
+      <p class="lead">
         Scream USC is USC's student organization for theme park enthusiasts and engineers.
-        We run park trips around the Los Angeles region, behind-the-scenes tours, guest speaker
-        talks with industry professionals, and participate in the Ride Engineering Competition.
-        Membership is open to all majors and years, there are no dues, and we balance a
-        half-professional / half-enthusiast culture — come build, learn, and ride with us.
+        We run park trips across the LA region, organize behind-the-scenes tours with industry
+        professionals, host guest talks, and compete in ride engineering challenges.
+        Membership is open to all majors and years — come build, learn, and ride with us.
       </p>
 
-      <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <div>
-          <h6 class="font-semibold text-gray-800 dark:text-white">Park Trips</h6>
-          <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">Group rides, logistics, and hands-on observations.</p>
+      <!-- Feature cards -->
+      <div class="mt-6 feature-grid">
+        <div class="feature">
+          <h6>Park Trips</h6>
+          <p class="mt-2">Organized group trips to regional parks — coordinated logistics, group rides, and hands-on observations for learning and fun.</p>
         </div>
-        <div>
-          <h6 class="font-semibold text-gray-800 dark:text-white">Behind-the-Scenes</h6>
-          <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">Tours focused on systems, mechanics, and operations.</p>
+
+        <div class="feature">
+          <h6>Behind-the-Scenes</h6>
+          <p class="mt-2">Tours and access focused on ride systems, mechanics, and operations — excellent for aspiring engineers and curious enthusiasts.</p>
         </div>
-        <div>
-          <h6 class="font-semibold text-gray-800 dark:text-white">Ride Engineering</h6>
-          <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">Design projects and competition participation.</p>
+
+        <div class="feature">
+          <h6>Ride Engineering</h6>
+          <p class="mt-2">Design projects and competitions where members apply practical engineering to ride concepts and prototypes.</p>
         </div>
       </div>
     </AboutSection>
 
     <!-- Alumni/company collage -->
     <section aria-labelledby="alumni-heading" class="container mx-auto px-4">
-      <h2 id="alumni-heading" class="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white text-center">Where Our Alumni Work</h2>
-      <p class="text-center text-gray-600 dark:text-gray-300 mt-2">A sample of companies our members have joined after graduation.</p>
+      <h2 id="alumni-heading" class="page-h2 text-center">Where Our Alumni Work</h2>
+      <p class="alumni-sub text-center">A sample of companies our members have joined after graduation.</p>
 
       <div class="mt-8">
         <AlumniCollage logos={alumniLogos} />
