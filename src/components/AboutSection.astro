@@ -1,10 +1,197 @@
 ---
-// AboutSection.astro
-// Simple wrapper to keep structure consistent with other components.
-// Usage: put whatever content you want inside the component body (slot).
+// src/components/AboutSection.astro
+// AboutSection rewritten so the title underline dynamically matches the title length.
+// lead is provided via named slot (slot="lead") with a single-source default.
+//
+// Props:
+// - title: string
+// - features: Array<{title: string, body: string}>
+// - alumniLogos: string[] (optional)
+// - forceTitleCase: boolean (optional)
+import AlumniCollage from './AlumniCollage.astro';
+
+const {
+  title = 'Who We Are',
+  features = [
+    { title: 'Are you an enthusiast?', body: 'We host several park trips every year, getting exclusive access to discounted tickets and' },
+    { title: 'Behind-the-Scenes', body: 'Tours focused on systems, mechanics, and operations — excellent for aspiring engineers and curious enthusiasts.' },
+    { title: 'Ride Engineering', body: 'Design projects and competitions where members apply practical engineering to ride concepts and prototypes.' },
+  ],
+  alumniLogos = null,
+  forceTitleCase = false,
+} = Astro.props;
+
+// --- Single source default lead text (change here to be definitive) ---
+const defaultLead = `Scream USC is USC's student organization for themed entertainment enthusiasts and engineers. We run park trips around the Los Angeles region, behind-the-scenes tours, guest speaker talks with industry professionals, participate in the Ride Engineering Competition, and more. Membership is open to all majors and years. Come build, learn, and ride with us! 🎢`;
+
+// --- Normalization & checks ---
+const normalizedFeatures = Array.isArray(features) ? features.filter(Boolean) : [];
+const hasAlumni = Array.isArray(alumniLogos) && alumniLogos.length > 0;
+
+function toTitleCase(s) {
+  if (!s || typeof s !== 'string') return s;
+  return s.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+}
+const effectiveTitle = forceTitleCase ? toTitleCase(title) : title;
 ---
-<section class="container mx-auto px-4">
-  <div class="max-w-4xl mx-auto py-12">
+<style>
+  /* fonts + variables */
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;900&family=Inter:wght@300;400;600&display=swap');
+
+  :root {
+    --color-primary: var(--color-primary, #ff9248);
+    --color-muted: #6b7280;
+    --bg-card: var(--color-secondary, #fff7f0);
+  }
+
+  .about { max-width: 64rem; margin-left: auto; margin-right: auto; padding: 3rem 1rem; }
+
+  /* Page title - center the inline-block text, use span.title-inner for dynamic underline */
+  .page-h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(2rem, 3.75vw, 3rem);
+    line-height: 1.02;
+    margin: 0;
+    color: #0b1220;
+    position: relative;
+    padding-bottom: 0.6rem;
+    display: block;
+    text-align: center;
+    text-transform: none;
+  }
+
+  /* inline wrapper around the title text */
+  .page-h2 .title-inner {
+    display: inline-block;
+    position: relative; /* needed for the ::after underline */
+    padding-bottom: 0.25rem; /* small breathing room above the underline */
+  }
+
+  /* dynamic underline sized to the text width */
+  .page-h2 .title-inner::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0; /* makes width match the inline-block */
+    bottom: -0.18rem;
+    height: 0.48rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(255,146,72,0.95), rgba(255,146,72,0.85));
+    filter: blur(0.25px);
+    z-index: -1;
+    opacity: 0.95;
+  }
+
+  /* lead paragraph */
+  .lead { margin-top: 0.75rem; color: #374151; max-width: 70ch; font-size: 1.125rem; line-height: 1.75; font-weight: 400; letter-spacing: -0.002em; margin-left: auto; margin-right: auto; text-align: center; }
+
+  .feature-grid {
+    margin-top: 1.25rem;
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  .feature { 
+    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.96)); 
+    border-radius: 12px; 
+    padding: 1.25rem;
+    box-shadow: 0 8px 20px rgba(11,17,32,0.04); 
+    border: 1px solid rgba(11,17,32,0.03);
+    text-align: center;
+  }
+
+  .feature h6 { 
+    font-family: 'Fraunces', serif; 
+    font-weight: 600; 
+    margin: 0 0 0.5rem 0; 
+    font-size: 1.1rem; 
+    color: #0b1220; 
+    display: inline-flex;
+    align-items: center; 
+    justify-content: center;
+    gap: 0.5rem; 
+  }
+
+  .feature h6::before { content: ''; width: 10px; height: 10px; border-radius: 999px; background: var(--color-primary); box-shadow: 0 4px 10px rgba(255,146,72,0.18); }
+  .feature p { margin: 0; color: #4b5563; font-size: 0.95rem; line-height: 1.6; }
+
+  .alumni-sub { color: #475569; margin-top: 0.5rem; text-align: center; }
+
+  /* Interested section */
+  .interested {
+    margin-top: 2.25rem;
+    text-align: center;
+  }
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.1rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #fff;
+    background: linear-gradient(180deg, var(--color-primary, #ff9c58), var(--color-primary, #ff9248));
+    box-shadow: 0 8px 20px rgba(255,146,72,0.14);
+    text-decoration: none;
+  }
+  .cta-btn:focus { outline: 3px solid rgba(255,146,72,0.12); outline-offset: 3px; }
+
+  @media (max-width: 640px) {
+    .page-h2 .title-inner::after { height: 0.4rem; bottom: -0.14rem; }
+  }
+</style>
+
+<section class="about" aria-labelledby="about-heading">
+  <!-- wrap the title text in .title-inner so the underline matches its width -->
+  <h2 id="about-heading" class="page-h2"><span class="title-inner">{effectiveTitle}</span></h2>
+
+  <!-- named slot for the lead. If parent provides slot="lead" it will be used.
+       If not, the component renders the component-local defaultLead constant below. -->
+  <slot name="lead">
+    <!-- default lead (single source of truth) -->
+    <p class="lead" role="note" data-lead-source="component-default">{defaultLead}</p>
+  </slot>
+
+  <div class="feature-grid" role="list">
+    {normalizedFeatures.length ? (
+      normalizedFeatures.map((f) => (
+        <article class="feature" role="listitem">
+          <h6>{f.title}</h6>
+          <p class="mt-2">{f.body}</p>
+        </article>
+      ))
+    ) : (
+      <article class="feature" role="listitem">
+        <h6>Activities</h6>
+        <p class="mt-2">We host park trips, behind-the-scenes tours, guest speakers, and an annual ride engineering competition.</p>
+      </article>
+    )}
+  </div>
+
+  {hasAlumni ? (
+    <>
+      <h3 class="page-h2" style="margin-top:4rem;">
+        <span class="title-inner">Where Our Alumni Work</span>
+      </h3>
+      <p class="alumni-sub">A sample of companies our alumni have joined after graduation.</p>
+      <div style="margin-top:1.25rem">
+        <AlumniCollage logos={alumniLogos} />
+      </div>
+    </>
+  ) : (
     <slot />
+  )}
+
+  <!-- Interested CTA -->
+  <div class="interested" style="margin-top:4.5rem;">
+    <h3 class="page-h2" style="margin-top:2rem;"><span class="title-inner">Interested?</span></h3>
+    <div style="margin-top:1rem;">
+      <a href="/join" class="cta-btn" role="button" aria-label="Join Scream USC — go to Join page">
+        Join Scream USC
+      </a>
+    </div>
   </div>
 </section>
