@@ -11,10 +11,9 @@ const {
 } = Astro.props;
 
 const siteUrl = canonical.replace(/\/$/, '');
-const pathname = typeof Astro.request !== 'undefined'
-  ? Astro.request.url.replace(Astro.request.origin || '', '') // safe fallback if origin exists
-  : '/';
-const pageUrl = siteUrl + pathname;
+const pageUrl = typeof Astro.request !== 'undefined'
+  ? Astro.request.url
+  : canonical;
 const pageTitle = title && title !== "Scream USC" ? `${title} | Scream USC` : "Scream USC";
 ---
 <!DOCTYPE html>
@@ -51,20 +50,21 @@ const pageTitle = title && title !== "Scream USC" ? `${title} | Scream USC` : "S
     <meta name="theme-color" content="#0f172a" />
 
     <!-- JSON-LD Organization Schema -->
-    <script type="application/ld+json" is:inline>
-      {JSON.stringify({
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Organization",
-        "name": "Scream USC",
-        "url": siteUrl,
-        "logo": `${siteUrl}/images/logo.png`,
-        "sameAs": [
-          "https://www.instagram.com/YOUR_HANDLE",
-          "https://www.linkedin.com/company/YOUR_PAGE",
-          "https://linktr.ee/YOUR_LINKTREE"
+        name: "Scream USC",
+        url: siteUrl,
+        logo: `${siteUrl}/images/logo.png`,
+        sameAs: [
+          "https://www.instagram.com/screamusc/",
+          "https://www.linkedin.com/company/scream-usc/",
+          "https://linktr.ee/screamusc"
         ]
       })}
-    </script>
+    />
 
     <!-- Fonts -->
     <AstroFont
